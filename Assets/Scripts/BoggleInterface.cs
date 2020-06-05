@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using Boggle;
+using System.IO;
 
-namespace BoggleInterface
+namespace Boggle
 {
     public interface IResults
     {
@@ -17,48 +16,56 @@ namespace BoggleInterface
 
     public class MyBoggleSolution : IResults, ISolver
     {
-        private static WordDictionary   m_Dictionary;
-        private static BoggleSet        m_Boggle;
-        private IEnumerable<string>     m_FoundWords { get; set; }
-        private int                     m_Points { get; set; }
+        private static WordDictionary   Dictionary;
+        private static BoggleSet        Boggle;
+        private static Trie             WordTrie;
+        private IEnumerable<string>     FoundWords  { get; set; }
+        private int                     TotalPoints { get; set; }
 
-        IEnumerable<string> IResults.Words { get => GetWords(); }
-        int IResults.Score { get => GetScore(); }
+        IEnumerable<string> IResults.Words  { get => GetWords(); }
+        int IResults.Score                  { get => GetScore(); }
 
         public MyBoggleSolution(bool isBoardProvided = false, char[,] providedBoard = null)
         {
-            m_Boggle = new BoggleSet();
-            m_Boggle.SetProvidedBoard(false, isBoardProvided, providedBoard);
+            Boggle = new BoggleSet();
+            Boggle.SetProvidedBoard(false, isBoardProvided, providedBoard);
         }
-        public IEnumerable<string> GetWords()
-        {
-            return m_FoundWords;
-        }
-        public int GetScore()
-        {
-            return m_Points;
-        }
-        public WordDictionary GetDictionary()
-        {
-            return m_Dictionary;
-        }
+
+        public IEnumerable<string> GetWords()   { return FoundWords;  }
+        public int GetScore()                   { return TotalPoints; }
+        public WordDictionary GetDictionary()   { return Dictionary;  }
+        public Trie GetWordTrie()               { return WordTrie;    }
+
         public IResults FindWords(char[,] board)
         {
             MyBoggleSolution solution = new MyBoggleSolution(true, board);
-            m_Boggle.m_dictionary = m_Dictionary;
+            Boggle.m_dictionary = Dictionary;
+            Boggle.m_wordTrie = WordTrie;
             List<string> words = new List<string>();
 
-            solution.m_FoundWords = m_Boggle.CompileWords(words);
-            solution.m_Points = m_Boggle.GetPoints();
-
+            solution.FoundWords = Boggle.CompileWordsFromTrie(words);
+            solution.TotalPoints = Boggle.GetPoints();
+  
             return solution;
         }
         public static ISolver CreateSolver(string dictionaryPath)
         {
-            m_Boggle.m_dictionary.CompileDictionary(dictionaryPath);
-            m_Dictionary = m_Boggle.m_dictionary;
+            MyBoggleSolution solution = new MyBoggleSolution();
+            Boggle.m_dictionary.CompileDictionary(dictionaryPath);
+            Dictionary = Boggle.m_dictionary;
 
-            return new MyBoggleSolution();
+            List<string> items = new List<string>();
+            StreamReader reader = new StreamReader(dictionaryPath);
+
+            while (!reader.EndOfStream)
+            {
+                items.Add(reader.ReadLine());
+            }
+
+            Boggle.m_wordTrie.GenerateFromList(items);
+            WordTrie = Boggle.m_wordTrie;
+
+            return solution;
         }
     }
 }

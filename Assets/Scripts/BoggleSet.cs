@@ -1,30 +1,107 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Boggle
 {
-    static class BoggleGlobals
+    public class Node
     {
-        public static int g_numBlockSides = 6;
-        public static int g_iGridSize = 3;
-        public static int g_minWordLength = 3;
-        public static int g_maxWordLength = g_iGridSize * g_iGridSize;
-        public static string PryDiadicHeader(string str)
+        public char Value { get; set; }
+        public int Depth { get; set; }
+        public bool IsLeaf { get; set; }
+        public Node Parent { get; set; }
+        public List<Node> Children { get; set; }
+
+        public Node(char v, int d, Node p, bool l = false)
         {
-            char[] array = str.ToCharArray(0, 2);
-            string header = new string(array);
-            return header;
+            Value = v;
+            Depth = d;
+            Parent = p;
+            IsLeaf = l;
+            Children = new List<Node>();
         }
-        public static string PryTriadicHeader(string str)
+
+        public void MakeLeaf()
         {
-            char[] array = str.ToCharArray(0, 3);
-            string header = new string(array);
-            return header;
+            IsLeaf = true;
+        }
+
+        public Node FindChildNode(char c)
+        {
+            foreach (Node child in Children)
+            {
+                if (child.Value == c)
+                    return child;
+            }
+
+            return null;
+        }
+    }
+
+    public class Trie
+    {
+        private readonly Node RootNode;
+
+        public Trie()
+        {
+            RootNode = new Node('^', 0, null);
+        }
+
+        private void BranchOut(string str)
+        {
+            Node currentNode = RootNode;
+
+            foreach (char c in str)
+            {
+                Node foundNode = currentNode.FindChildNode(c);
+                if (foundNode == null)
+                {
+                    Node newNode = new Node(c, currentNode.Depth + 1, currentNode);
+                    currentNode.Children.Add(newNode);
+                    currentNode = newNode;
+                    continue;
+                }
+                currentNode = foundNode;
+            }
+
+            currentNode.MakeLeaf();
+            currentNode.Children.Add(new Node('$', currentNode.Depth + 1, currentNode));
+        }
+
+        public void GenerateFromList(List<string> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Length >= BoggleGlobals.g_minWordLength)
+                    BranchOut(list[i]);
+            }
+        }
+
+        public int QueryNodes(string str)
+        {
+            Node currentNode = RootNode;
+            int last = str.Length - 1;
+            int result = 0;
+
+            for (int c = 0; c < str.Length; c++)
+            {
+                Node foundNode = currentNode.FindChildNode(str[c]);
+                if (foundNode == null)
+                {
+                    result = -1;
+                    break;
+                }
+                else if (foundNode.IsLeaf)
+                {
+                    if (c == last)
+                        result = 1;
+                }
+                currentNode = foundNode;
+            }
+
+            return result;
         }
     }
 
@@ -157,11 +234,13 @@ namespace Boggle
 
         [HideInInspector] public WordDictionary m_dictionary;
         [HideInInspector] public BlockSet m_blocks;
+        [HideInInspector] public Trie m_wordTrie;
 
         public BoggleSet()
         {
             m_dictionary = new WordDictionary();
             m_blocks = new BlockSet();
+            m_wordTrie = new Trie();
         }
         public BoggleSet(string dictionaryPath)
         {
@@ -169,6 +248,15 @@ namespace Boggle
             m_blocks = new BlockSet();
             m_dictionaryPath = dictionaryPath;
             m_dictionary.CompileDictionary(m_dictionaryPath);
+            m_wordTrie = new Trie();
+
+            List<string> items = new List<string>();
+            StreamReader reader = new StreamReader(dictionaryPath);
+
+            while (!reader.EndOfStream)
+                items.Add(reader.ReadLine());
+
+            m_wordTrie.GenerateFromList(items);
         }
         public int GetPoints() { return m_solutionPoints; }
         public int GetCount() { return m_solutionCount; }
@@ -180,7 +268,7 @@ namespace Boggle
             {
                 m_isBoardProvided = true;
                 m_providedBoard = new char[3, 3] {  { 'D', 'Z', 'X' },
-                                                    { 'E', 'A', 'T' },
+                                                    { 'E', 'A', 'I' },
                                                     { 'Q', 'U', 'T' }   };
             }
 
@@ -213,12 +301,31 @@ namespace Boggle
             m_solutionCount += words.Count;
             return words.AsEnumerable();
         }
+        public IEnumerable<string> CompileWordsFromTrie(List<string> words)
+        {
+            // Compile all combination possibilities starting from each block and then store into a List of strings
+            for (int r = 0; r < m_blocks.GetBlocks2D().GetLength(0); r++)
+            {
+                for (int c = 0; c < m_blocks.GetBlocks2D().GetLength(1); c++)
+                {
+                    m_blocks.GetBlocks2D()[r, c].m_visited = true;
+                    List<string> list = new List<string>();
+                    words.AddRange(GenerateCombinationFromTrie(list, "", r, c));
+                    m_blocks.ResetVisited();
+                }
+            }
+
+            words = words.Distinct().ToList();
+            words.Sort();
+            m_solutionCount += words.Count;
+            return words.AsEnumerable();
+        }
         public List<string> GenerateCombination(List<string> list, string prev, int row, int col)
         {
             //Debug.Log("GenerateCombination() iteration");         //DEBUG
             string cur = m_blocks.GetBlocks2D()[row, col].m_top.ToString();
-            if (cur == "Q")
-            { cur += "U"; }
+            if (cur == "Q") 
+                cur += "U";
             string combo = prev + cur;
 
             if (combo.Length == 2)
@@ -255,6 +362,42 @@ namespace Boggle
                     {
                         adjacent[a].m_visited = true;
                         list = GenerateCombination(list, combo, adjacent[a].m_row, adjacent[a].m_col);
+                    }
+                }
+            }
+
+            m_blocks.GetBlocks2D()[row, col].m_visited = false;
+            return list;
+        }
+        public List<string> GenerateCombinationFromTrie(List<string> list, string prev, int row, int col)
+        {
+            //Debug.Log("GenerateCombination() iteration");         //DEBUG
+            string cur = m_blocks.GetBlocks2D()[row, col].m_top.ToString();
+            if (cur == "Q")
+                cur += "U";
+            string combo = prev + cur;
+
+            int n = m_wordTrie.QueryNodes(combo);
+            if (n < 0)
+            {
+                m_blocks.GetBlocks2D()[row, col].m_visited = false;
+                return list;
+            }
+            else if (n > 0)
+            {
+                list.Add(combo);
+                ScoreWord(combo);
+            }
+
+            List<AlphabetBlock> adjacent = m_blocks.FindNewAdjacent(row, col);
+            if (adjacent.Count > 0)
+            {
+                for (int a = 0; a < adjacent.Count; a++)
+                {
+                    if (!adjacent[a].m_visited)
+                    {
+                        adjacent[a].m_visited = true;
+                        list = GenerateCombinationFromTrie(list, combo, adjacent[a].m_row, adjacent[a].m_col);
                     }
                 }
             }

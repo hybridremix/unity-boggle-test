@@ -25,7 +25,7 @@ namespace Boggle
                 m_overlayPanel.GetComponentInChildren<Text>().text = m_calculating;
                 m_overlayPanel.SetActive(true);
                 List<string> combos = new List<string>();
-                m_boggleSet.CompileWords(combos);
+                m_boggleSet.CompileWordsFromTrie(combos);
 
                 SetGameDescription(true);
                 m_boggleSet.m_isSolved = true;

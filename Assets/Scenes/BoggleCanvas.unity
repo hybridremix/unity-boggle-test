@@ -1490,9 +1490,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9949b8f0f94f9e640a2847556a0ba5ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_overlayPanel: {fileID: 0}
   m_gridLayout: {fileID: 0}
   m_gridCells: []
-  m_overlayPanel: {fileID: 0}
   m_gameDesc: {fileID: 0}
   m_loading: 
   m_calculating: 
