@@ -9,7 +9,7 @@ accurate results without slowing this performance.
 
 The collins_scrabble_words.txt file is your dictionary. A word cannot be counted valid unless it
 appears on this word list. Points are calculated according to word length. Both the standard word
-validation and point calculation rules can be found on the Rules section of the Wikipedia page.
+construction and point calculation rules can be found on the Rules section of the Wikipedia page.
 
 There are two TODOs in the code that set your starting points:
  - 1) The WordDictionary class is where the list of reference words is constructed. Use the
@@ -18,6 +18,8 @@ There are two TODOs in the code that set your starting points:
       that SOLVE button will look for the solution algorithm.
 
 Other fuctional expectations for a correct solution:
+- The solution should maintain its performance even when increasing the Boggle.Globals.GridSize to
+  almost any size.
 - The results statement, "This grid contains 0 words for a total of 0 points!" should print the
   word count and point totals from your solver.
 - TODO
