@@ -8,23 +8,13 @@ using UnityEngine.Assertions;
 
 namespace Boggle
 {
-    static class BoggleGlobals
-    {
-        public static int g_NumBlockSides = 6;
-        public static int g_GridSize = 3;
-        public static int g_MinWordLength = 3;
-        public static int g_MaxWordLength = g_GridSize * g_GridSize;
-    }
-
     public class WordDictionary
     {
         public WordDictionary() { }
 
         public void CompileDictionary(string path)
         {
-            StreamReader reader = new StreamReader(path);
-
-            using (reader = File.OpenText(path))
+            using (StreamReader reader = File.OpenText(path))
             {
                 // TODO
             }
@@ -35,7 +25,6 @@ namespace Boggle
         public int SolutionCount = 0;
         public int SolutionPoints = 0;
         public bool IsSolved = false;
-        private string DictionaryPath;
 
         [HideInInspector] public WordDictionary GameDictionary;
         [HideInInspector] public BlockSet GameBlocks;
@@ -49,8 +38,7 @@ namespace Boggle
         {
             GameDictionary = new WordDictionary();
             GameBlocks = new BlockSet();
-            DictionaryPath = dictionaryPath;
-            GameDictionary.CompileDictionary(DictionaryPath);
+            GameDictionary.CompileDictionary(dictionaryPath);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Boggle
         [HideInInspector] public Text[]             UiGridCells;
         [HideInInspector] public Text               UiGameDescription;
         [HideInInspector] public string             UiLoadingMessage;
-        [HideInInspector] public string             UiCalculatingMessage;
+        [HideInInspector] public string             UiCountingMessage;
         [HideInInspector] public Button             UiButtonSolve;
         [HideInInspector] public Button             UiButtonShake;
 
@@ -22,7 +22,7 @@ namespace Boggle
         {
             if (!GameBoggleSet.IsSolved)
             {
-                UiOverlayPanel.GetComponentInChildren<Text>().text = UiCalculatingMessage;
+                UiOverlayPanel.GetComponentInChildren<Text>().text = UiCountingMessage;
                 UiOverlayPanel.SetActive(true);
 
                 // TODO
@@ -75,16 +75,16 @@ namespace Boggle
         // Start is called before the first frame update
         void Start()
         {
-            UiCalculatingMessage = "Counting your words.\nPlease wait...";
+            UiCountingMessage = "Counting your words.\nPlease wait...";
             UiLoadingMessage = "Loading dictionary.\nPlease wait...";
 
             UiGridLayout = GetComponentInChildren<GridLayoutGroup>();
-            UiGridLayout.constraintCount = BoggleGlobals.g_GridSize;
-            UiGridLayout.cellSize = new Vector2((100 / (33.0f * BoggleGlobals.g_GridSize)) * 100, (100 / (33.0f * BoggleGlobals.g_GridSize)) * 100);
-            UiGridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (BoggleGlobals.g_GridSize * UiGridLayout.cellSize.x) + (BoggleGlobals.g_GridSize * 10.0f));
-            UiGridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (BoggleGlobals.g_GridSize * UiGridLayout.cellSize.y) + (BoggleGlobals.g_GridSize * 10.0f));
+            UiGridLayout.constraintCount = BoggleGlobals.GridSize;
+            UiGridLayout.cellSize = new Vector2((100 / (33.0f * BoggleGlobals.GridSize)) * 100, (100 / (33.0f * BoggleGlobals.GridSize)) * 100);
+            UiGridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (BoggleGlobals.GridSize * UiGridLayout.cellSize.x) + (BoggleGlobals.GridSize * 10.0f));
+            UiGridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (BoggleGlobals.GridSize * UiGridLayout.cellSize.y) + (BoggleGlobals.GridSize * 10.0f));
             GameObject cell0 = UiGridLayout.transform.Find("cell0").gameObject;
-            GameObject[] txtObjects = new GameObject[BoggleGlobals.g_GridSize * BoggleGlobals.g_GridSize];
+            GameObject[] txtObjects = new GameObject[BoggleGlobals.GridSize * BoggleGlobals.GridSize];
             for (int t = 0; t < txtObjects.Length; t++)
             {
                 txtObjects[t] = (t == 0) ? cell0 : Instantiate(cell0);

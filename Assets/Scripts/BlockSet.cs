@@ -9,7 +9,6 @@ namespace Boggle
     {
         public Letter[] BlockSides;
         public char BlockTop = ' ';
-        public bool IsBlockVisited = false;
         public int RowPosition = 0;
         public int ColPosition = 0;
 
@@ -23,7 +22,7 @@ namespace Boggle
 
     public class BlockSet
     {
-        public AlphabetBlock[,] BlockGrid = new AlphabetBlock[BoggleGlobals.g_GridSize, BoggleGlobals.g_GridSize];
+        public AlphabetBlock[,] BlockGrid = new AlphabetBlock[BoggleGlobals.GridSize, BoggleGlobals.GridSize];
         public Dictionary<Letter, int> LetterRepo = new Dictionary<Letter, int>();
 
         public BlockSet()
@@ -32,11 +31,11 @@ namespace Boggle
             for (int m = 0; m < BlockGrid.GetLength(0); m++)
             {
                 for (int n = 0; n < BlockGrid.GetLength(1); n++)
-                    BlockGrid[m, n] = new AlphabetBlock(BoggleGlobals.g_NumBlockSides);
+                    BlockGrid[m, n] = new AlphabetBlock(BoggleGlobals.NumBlockSides);
             }
 
             // Populate the letter repo
-            int needed = ((BoggleGlobals.g_GridSize * BoggleGlobals.g_GridSize) * BoggleGlobals.g_NumBlockSides) + BoggleGlobals.g_NumBlockSides;
+            int needed = ((BoggleGlobals.GridSize * BoggleGlobals.GridSize) * BoggleGlobals.NumBlockSides) + BoggleGlobals.NumBlockSides;
             float modifier = 0.14f;
             for (int iter = 7; iter > 0; iter--)
             {
@@ -98,7 +97,7 @@ namespace Boggle
                     BlockGrid[i, j].RowPosition = i;
                     BlockGrid[i, j].ColPosition = j;
                     //For each block in the grid, fill each side of that block
-                    for (int k = 0; k < BoggleGlobals.g_NumBlockSides; k++)
+                    for (int k = 0; k < BoggleGlobals.NumBlockSides; k++)
                     {
                         //Randomly generate a letter between A and Z
                         Letter randKey = (Letter)UnityEngine.Random.Range((int)Letter.A, (int)Letter.Z);
@@ -120,34 +119,6 @@ namespace Boggle
             }
         }
 
-        public AlphabetBlock[,] GetBlocks2D()
-        {
-            return BlockGrid;
-        }
-
-        public char[,] GetGrid2DAsChar()
-        {
-            char[,] charBoard = new char[BlockGrid.GetLength(0), BlockGrid.GetLength(1)];
-            for (int x = 0; x < charBoard.GetLength(0); x++)
-            {
-                for (int y = 0; y < charBoard.GetLength(1); y++)
-                {
-                    charBoard[x, y] = BlockGrid[x, y].BlockTop;
-                }
-            }
-            return charBoard;
-        }
-        public void ResetVisited()
-        {
-            for (int r = 0; r < BlockGrid.GetLength(0); r++)
-            {
-                for (int c = 0; c < BlockGrid.GetLength(1); c++)
-                {
-                    BlockGrid[r, c].IsBlockVisited = false;
-                }
-            }
-        }
-
         public void ShakeBlocks()
         {
             // Randomly select one of the block sides as its top-facing side
@@ -165,28 +136,6 @@ namespace Boggle
                     }
                 }
             }
-        }
-
-        // Find all adjacent blocks
-        public List<AlphabetBlock> FindNewAdjacent(int x, int y)
-        {
-            List<AlphabetBlock> adj = new List<AlphabetBlock>();
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                int row = x + dx;
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    int col = y + dy;
-                    if (row >= 0 && row < BlockGrid.GetLength(0)
-                      && col >= 0 && col < BlockGrid.GetLength(1)
-                      && (BlockGrid[row, col] != BlockGrid[x, y]))
-                    {
-                        adj.Add(BlockGrid[row, col]);
-                    }
-                }
-            }
-
-            return adj;
         }
     }
 }
