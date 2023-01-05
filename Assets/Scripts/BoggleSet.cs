@@ -14,7 +14,7 @@ namespace Boggle
         {
             using (StreamReader reader = File.OpenText(path))
             {
-                // TODO
+                // TODO :: Import word list and compile an efficient, searchable data structure.
             }
         }
     }

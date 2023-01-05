@@ -24,7 +24,7 @@ namespace Boggle
                 UiOverlayPanel.GetComponentInChildren<Text>().text = UiCountingMessage;
                 UiOverlayPanel.SetActive(true);
 
-                // TODO
+                // TODO :: Use the currently visible letters to build valid words from the reference dictionary, and count their point values.
 
                 SetGameDescription(true);
                 GameBoggleSet.IsSolved = true;
