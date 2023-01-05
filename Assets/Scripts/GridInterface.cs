@@ -117,6 +117,8 @@ namespace Boggle
         {
             if (Input.GetKeyUp(KeyCode.Escape))
                 Application.Quit();
+
+            UiButtonSolve.interactable = GameBoggleSet.IsSolved ? false : true;
         }
     }
 }
