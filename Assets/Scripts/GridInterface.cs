@@ -6,64 +6,62 @@ namespace Boggle
 {
     public class GridInterface : MonoBehaviour
     {
-        [HideInInspector] public BoggleSet          m_boggleSet;
-        [HideInInspector] public GameObject         m_overlayPanel;
-        [HideInInspector] public GridLayoutGroup    m_gridLayout;
-        [HideInInspector] public Text[]             m_gridCells;
-        [HideInInspector] public Text               m_gameDesc;
-        [HideInInspector] public string             m_loading;
-        [HideInInspector] public string             m_calculating;
-        [HideInInspector] public Button             m_btnSolve;
-        [HideInInspector] public Button             m_btnShake;
+        [HideInInspector] public BoggleSet          GameBoggleSet;
+        [HideInInspector] public GameObject         UiOverlayPanel;
+        [HideInInspector] public GridLayoutGroup    UiGridLayout;
+        [HideInInspector] public Text[]             UiGridCells;
+        [HideInInspector] public Text               UiGameDescription;
+        [HideInInspector] public string             UiLoadingMessage;
+        [HideInInspector] public string             UiCalculatingMessage;
+        [HideInInspector] public Button             UiButtonSolve;
+        [HideInInspector] public Button             UiButtonShake;
 
         public GridInterface() { }
 
         private void SolveOnClick()
         {
-            if (!m_boggleSet.m_isSolved)
+            if (!GameBoggleSet.IsSolved)
             {
-                m_overlayPanel.GetComponentInChildren<Text>().text = m_calculating;
-                m_overlayPanel.SetActive(true);
-                List<string> combos = new List<string>();
-                m_boggleSet.CompileWords(combos);
+                UiOverlayPanel.GetComponentInChildren<Text>().text = UiCalculatingMessage;
+                UiOverlayPanel.SetActive(true);
+
+                // TODO
 
                 SetGameDescription(true);
-                m_boggleSet.m_isSolved = true;
+                GameBoggleSet.IsSolved = true;
             }
-            m_overlayPanel.SetActive(false);
+            UiOverlayPanel.SetActive(false);
         }
         private void ShakeOnClick()
         {
             SetGameDescription();
-            m_boggleSet.m_solutionCount = 0;
-            m_boggleSet.m_solutionPoints = 0;
-            m_boggleSet.m_isSolved = false;
+            GameBoggleSet.SolutionCount = 0;
+            GameBoggleSet.SolutionPoints = 0;
+            GameBoggleSet.IsSolved = false;
 
-            m_boggleSet.m_blocks.ShakeBlocks();
-            UpdateGrid(m_boggleSet.m_blocks);
+            GameBoggleSet.GameBlocks.ShakeBlocks();
+            UpdateGrid(GameBoggleSet.GameBlocks);
         }
         private void SetGameDescription()
         {
-            m_gameDesc.text = "Press SOLVE to find all the possible words!\nPress SHAKE to get a new set of letters.";
+            UiGameDescription.text = "Press SOLVE to find all the possible words!\nPress SHAKE to get a new set of letters.";
         }
-        private void SetGameDescription(bool needsReport)
+        private void SetGameDescription(bool isSolutionFound)
         {
-            if (needsReport)
-            {
-                m_gameDesc.text += ("\nThis grid contains " + m_boggleSet.m_solutionCount.ToString() + " words for a total of " + m_boggleSet.m_solutionPoints.ToString() + " points!");
-            }
+            if (isSolutionFound)
+                UiGameDescription.text += ("\nThis grid contains " + GameBoggleSet.SolutionCount.ToString() + " words for a total of " + GameBoggleSet.SolutionPoints.ToString() + " points!");
         }
 
         public void UpdateGrid(BlockSet grid)
         {
             int c = 0;
-            for (int a = 0; a < grid.m_blockGrid.GetLength(0); a++)
+            for (int a = 0; a < grid.BlockGrid.GetLength(0); a++)
             {
-                for (int b = 0; b < grid.m_blockGrid.GetLength(1); b++)
+                for (int b = 0; b < grid.BlockGrid.GetLength(1); b++)
                 {
-                    if (c < m_gridCells.Length)
+                    if (c < UiGridCells.Length)
                     {
-                        m_gridCells[c].text = (grid.m_blockGrid[a, b].m_top == 'Q') ? "QU" : grid.m_blockGrid[a, b].m_top.ToString();
+                        UiGridCells[c].text = (grid.BlockGrid[a, b].BlockTop == 'Q') ? "QU" : grid.BlockGrid[a, b].BlockTop.ToString();
                         c++;
                     }
                 }
@@ -71,58 +69,55 @@ namespace Boggle
         }
         void Awake()
         {
-            m_boggleSet = new BoggleSet("Assets/collins_scrabble_words.txt");
-            //m_boggleSet.SetProvidedBoard(true);         //DEBUG
-            m_boggleSet.m_blocks.ShakeBlocks();
+            GameBoggleSet = new BoggleSet("Assets/collins_scrabble_words.txt");
+            GameBoggleSet.GameBlocks.ShakeBlocks();
         }
         // Start is called before the first frame update
         void Start()
         {
-            m_calculating = "Counting your words.\nPlease wait...";
-            m_loading = "Loading dictionary.\nPlease wait...";
+            UiCalculatingMessage = "Counting your words.\nPlease wait...";
+            UiLoadingMessage = "Loading dictionary.\nPlease wait...";
 
-            m_gridLayout = GetComponentInChildren<GridLayoutGroup>();
-            m_gridLayout.constraintCount = BoggleGlobals.g_iGridSize;
-            m_gridLayout.cellSize = new Vector2((100 / (33.0f * BoggleGlobals.g_iGridSize)) * 100, (100 / (33.0f * BoggleGlobals.g_iGridSize)) * 100);
-            m_gridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (BoggleGlobals.g_iGridSize * m_gridLayout.cellSize.x) + (BoggleGlobals.g_iGridSize * 10.0f));
-            m_gridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (BoggleGlobals.g_iGridSize * m_gridLayout.cellSize.y) + (BoggleGlobals.g_iGridSize * 10.0f));
-            GameObject cell0 = m_gridLayout.transform.Find("cell0").gameObject;
-            GameObject[] txtObjects = new GameObject[BoggleGlobals.g_iGridSize * BoggleGlobals.g_iGridSize];
+            UiGridLayout = GetComponentInChildren<GridLayoutGroup>();
+            UiGridLayout.constraintCount = BoggleGlobals.g_GridSize;
+            UiGridLayout.cellSize = new Vector2((100 / (33.0f * BoggleGlobals.g_GridSize)) * 100, (100 / (33.0f * BoggleGlobals.g_GridSize)) * 100);
+            UiGridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (BoggleGlobals.g_GridSize * UiGridLayout.cellSize.x) + (BoggleGlobals.g_GridSize * 10.0f));
+            UiGridLayout.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (BoggleGlobals.g_GridSize * UiGridLayout.cellSize.y) + (BoggleGlobals.g_GridSize * 10.0f));
+            GameObject cell0 = UiGridLayout.transform.Find("cell0").gameObject;
+            GameObject[] txtObjects = new GameObject[BoggleGlobals.g_GridSize * BoggleGlobals.g_GridSize];
             for (int t = 0; t < txtObjects.Length; t++)
             {
                 txtObjects[t] = (t == 0) ? cell0 : Instantiate(cell0);
                 txtObjects[t].name = "cell" + t.ToString();
                 txtObjects[t].GetComponent<Text>().text = "New Cell";
-                txtObjects[t].transform.SetParent(m_gridLayout.transform);
+                txtObjects[t].transform.SetParent(UiGridLayout.transform);
                 txtObjects[t].transform.localScale = Vector3.one;
                 txtObjects[t].transform.localPosition = Vector3.zero;
-                txtObjects[t].GetComponentInChildren<Image>().rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, m_gridLayout.cellSize.x);
-                txtObjects[t].GetComponentInChildren<Image>().rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, m_gridLayout.cellSize.y);
+                txtObjects[t].GetComponentInChildren<Image>().rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, UiGridLayout.cellSize.x);
+                txtObjects[t].GetComponentInChildren<Image>().rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, UiGridLayout.cellSize.y);
             }
-            m_gridCells = m_gridLayout.GetComponentsInChildren<Text>();
+            UiGridCells = UiGridLayout.GetComponentsInChildren<Text>();
 
-            m_overlayPanel = GameObject.Find("overlay");
-            m_overlayPanel.GetComponentInChildren<Text>().text = m_loading;
-            m_overlayPanel.SetActive(false);
+            UiOverlayPanel = GameObject.Find("overlay");
+            UiOverlayPanel.GetComponentInChildren<Text>().text = UiLoadingMessage;
+            UiOverlayPanel.SetActive(false);
 
-            m_gameDesc = GameObject.Find("txt_report").GetComponent<Text>();
+            UiGameDescription = GameObject.Find("txt_report").GetComponent<Text>();
             SetGameDescription();
-            m_btnSolve = GameObject.Find("btn_solve").GetComponent<Button>();
-            m_btnShake = GameObject.Find("btn_shake").GetComponent<Button>();
+            UiButtonSolve = GameObject.Find("btn_solve").GetComponent<Button>();
+            UiButtonShake = GameObject.Find("btn_shake").GetComponent<Button>();
 
-            UpdateGrid(m_boggleSet.m_blocks);
+            UpdateGrid(GameBoggleSet.GameBlocks);
 
-            m_btnSolve.onClick.AddListener(SolveOnClick);
-            m_btnShake.onClick.AddListener(ShakeOnClick);
+            UiButtonSolve.onClick.AddListener(SolveOnClick);
+            UiButtonShake.onClick.AddListener(ShakeOnClick);
         }
 
         // Update is called once per frame
         void Update()
         {
             if (Input.GetKeyUp(KeyCode.Escape))
-            {
                 Application.Quit();
-            }
         }
     }
 }
