@@ -48,7 +48,7 @@ namespace Boggle
         private void SetGameDescription(bool isSolutionFound)
         {
             if (isSolutionFound)
-                UiGameDescription.text += ("\nThis grid contains " + GameBoggleSet.SolutionCount.ToString() + " words for a total of " + GameBoggleSet.SolutionPoints.ToString() + " points!");
+                UiGameDescription.text += ("\nThis grid contains <X> words for a total of <Y> points!");
         }
 
         public void UpdateGrid(BlockSet grid)
